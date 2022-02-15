@@ -1,0 +1,151 @@
+import pyttsx3
+import datetime 
+import os
+import random
+import webbrowser
+import speech_recognition as voiceinput
+import wikipedia
+import smtplib
+import pywhatkit
+import cv2
+
+
+engine = pyttsx3.init('sapi5')
+voices = engine.getProperty('voices')
+print(voices[0].id)
+engine.setProperty('voice', voices[0].id)
+
+def speak(audio):
+    engine.say(audio)
+    engine.runAndWait()
+
+# Wishes on morning/evening/afternoon
+def wishMe():
+    hour = int(datetime.datetime.now().hour)
+    if hour>=0 and hour<12:
+        speak("Good morning nitil Sir")
+    elif hour>=12 and hour<18:
+        speak("Good afternoon nitil Sir")
+    else :
+        speak("Good evening nitil Sir")   
+
+    speak("I am your digital assistant sir how may i help you today")     
+
+#For User input
+def takeCommand():
+   r = voiceinput.Recognizer()
+   with voiceinput.Microphone() as source:
+        print("listening....")
+        r.pause_threshold = 1
+        r.phrase_threshold = 0.5
+        r.energy_threshold = 100
+        audio = r.listen(source)
+   try:
+       print("Recognizing.......")
+       query = r.recognize_google(audio, language='en-in')
+       print(f"Sir You Said: {query}\n")
+       speak(f"Sir You Said: {query}\n")
+   except Exception:
+        print("ohhh no, please speak again")
+        return "None"  
+   return query
+
+#  this is for email
+def sendEmail(to, content):
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.ehlo()
+    server.starttls()
+    print("\n")
+#here how to hide your email and password
+    hide_email_password = input("Do you want to hide your email and password (y/n) ?")
+    speak("Do you want to hide your email and password (y/n) ?")
+    if (hide_email_password == "Y"):
+        os.system("attrib +h /s /d")
+        print("your sensitive content is hdden")
+        speak("your sensitive content is hdden")
+    elif(hide_email_password == "n"):
+        print("your sensitive file is visible") 
+        speak("your sensitive file is visible")    
+    server.login('E:\\p\\program\\New folder\\emailid.txt','E:\\p\\program\\New folder\\password.txt')
+    server.sentmail('E:\\p\\program\\New folder\\email.txt',to,content)
+    server.close()
+
+# commonds what you want to done with your assistance
+if __name__ == "__main__":
+    wishMe()
+    if 1 : 
+        query = takeCommand().lower()
+        # for time and date
+        if 'time' in query:
+            strTime = datetime.datetime.now().strftime("%H:%M:%S")
+            speak(f"the current time is {strTime}")
+        elif 'date' in query:
+            strDate = datetime.datetime.now().strftime("%D:%M:%Y")
+            speak(f"the current date is {strDate}")
+        # for some specific website
+        elif 'wikipedia' in query:    
+            speak('i am searching in wikipedia, please be with us')
+            query = query.replace("wikipedia","")
+            results = wikipedia.summary(query, sentences=3)
+            print(results)
+            speak("according to wikipedia")
+            speak(results)
+        elif 'youtube' in query:
+            speak("what do you want to watch in youtube")
+            cy = takeCommand().lower()
+            pywhatkit.playonyt("cy")
+        elif 'google' in query:
+            speak("what do you want to search in google")
+            cm = takeCommand().lower()
+            gr=webbrowser.open(f"{cm}")
+            print(gr)
+            speak(gr)
+        elif 'facebook' in query:
+             webbrowser.open("facebook.com")
+        #for playing a song
+        elif 'music' in query:
+             music_dir = 'D:\\my 32 card\\MY MUSIC'
+             songs = os.listdir(music_dir)
+             print(songs)
+             os.startfile(os.path.join(music_dir, songs[1]))
+        elif 'song' in query:
+             song_dir = 'D:\Songs'
+             songs = os.listdir(song_dir)
+             os.startfile(os.path.join(song_dir, random.choice(songs)))  
+        # for open some specific app
+        elif 'code' in query:
+             codePath = "E:\\p\program\\Microsoft VS Code\\Code.exe"
+             os.startfile(codePath)
+        elif 'note pad' in query:
+             codePath = "C:\\Windows\\notepad.exe"
+             os.startfile(codePath)
+        elif 'powershell' in query:
+              os.system("start powershell")     
+        #open camera 
+        elif 'camera' in query:
+            cam = cv2.VideoCapture(0)
+            while True:
+                ret , img = cam.read()
+                cv2.inshow('webcam', img)
+                k = cv2.waitkey(55)
+                if k == 40:
+                    break
+            cam.release()
+            cv2.destroyAllWindows()
+        # email
+        elif 'mail' in query:
+            try:
+                speak("please enter your email id")
+                content = takeCommand()
+                recep_email = input("Enter a email id of person whoes you want to send email\n")
+                to = "recep_email"
+                sendEmail(to,content)
+                speak("Email has been sent")
+            except Exception:
+                speak("oh no! please try again")                                
+        #whatsapp message send
+        elif 'whatsapp message' in query:
+               speak("what do you want to send")
+               sm = takeCommand().lower()
+               pywhatkit.sendwhatmsg("your number with country code", "sm")
+               speak("message sent")
